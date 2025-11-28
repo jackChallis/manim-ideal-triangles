@@ -110,7 +110,7 @@ def geodesic_arc(p1, p2, num_points=50):
 class IdealTriangle(VMobject):
     """A single ideal triangle on the Poincaré disk."""
 
-    def __init__(self, angles, radius=1.0, num_points_per_side=100, **kwargs):
+    def __init__(self, angles, radius=1.0, num_points_per_side=200, **kwargs):
         """
         Create an ideal triangle with vertices at given angles on the boundary.
 
@@ -333,7 +333,7 @@ class IdealTriangleConstruction(Scene):
         for i in range(3):
             p1 = ideal_points[i]
             p2 = ideal_points[(i+1) % 3]
-            arc_points = geodesic_arc(p1, p2, num_points=50)
+            arc_points = geodesic_arc(p1, p2, num_points=200)
             # Scale points
             arc_points = [2.5 * pt / np.linalg.norm(pt[:2]) if np.linalg.norm(pt[:2]) > 0.01
                          else 2.5 * pt for pt in arc_points]
@@ -341,7 +341,7 @@ class IdealTriangleConstruction(Scene):
             # Actually recalculate properly
             p1_norm = p1 / 2.5
             p2_norm = p2 / 2.5
-            arc_points = geodesic_arc(p1_norm, p2_norm, num_points=50)
+            arc_points = geodesic_arc(p1_norm, p2_norm, num_points=200)
             arc_points = [2.5 * pt for pt in arc_points]
 
             side = VMobject(color=[BLUE, GREEN, RED][i], stroke_width=3)
