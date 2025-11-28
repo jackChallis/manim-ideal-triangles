@@ -110,7 +110,7 @@ def geodesic_arc(p1, p2, num_points=50):
 class IdealTriangle(VMobject):
     """A single ideal triangle on the Poincaré disk."""
 
-    def __init__(self, angles, radius=1.0, **kwargs):
+    def __init__(self, angles, radius=1.0, num_points_per_side=100, **kwargs):
         """
         Create an ideal triangle with vertices at given angles on the boundary.
 
@@ -118,6 +118,7 @@ class IdealTriangle(VMobject):
             angles: List of 3 angles (in radians) specifying vertex positions
                    on the boundary circle
             radius: Radius of the Poincaré disk (default 1.0)
+            num_points_per_side: Points per geodesic arc (more = smoother curves)
         """
         super().__init__(**kwargs)
 
@@ -135,7 +136,7 @@ class IdealTriangle(VMobject):
             # Get unit circle points for geodesic calculation
             p1_unit = np.array([np.cos(angles[i]), np.sin(angles[i]), 0])
             p2_unit = np.array([np.cos(angles[(i + 1) % 3]), np.sin(angles[(i + 1) % 3]), 0])
-            arc_points = geodesic_arc(p1_unit, p2_unit, num_points=30)
+            arc_points = geodesic_arc(p1_unit, p2_unit, num_points=num_points_per_side)
             # Scale to disk radius
             scaled_points = [radius * pt for pt in arc_points]
             all_points.extend(scaled_points[:-1])  # Avoid duplicating endpoints
