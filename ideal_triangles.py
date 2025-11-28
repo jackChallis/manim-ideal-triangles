@@ -110,28 +110,35 @@ def geodesic_arc(p1, p2, num_points=50):
 class IdealTriangle(VMobject):
     """A single ideal triangle on the Poincaré disk."""
 
-    def __init__(self, angles, **kwargs):
+    def __init__(self, angles, radius=1.0, **kwargs):
         """
         Create an ideal triangle with vertices at given angles on the boundary.
 
         Parameters:
             angles: List of 3 angles (in radians) specifying vertex positions
-                   on the unit circle boundary
+                   on the boundary circle
+            radius: Radius of the Poincaré disk (default 1.0)
         """
         super().__init__(**kwargs)
 
-        # Vertices on the boundary circle
-        self.vertices = [
-            np.array([np.cos(a), np.sin(a), 0]) for a in angles
+        self.radius = radius
+
+        # Vertices on the boundary circle (at the given radius)
+        self.ideal_vertices = [
+            radius * np.array([np.cos(a), np.sin(a), 0]) for a in angles
         ]
 
         # Create the three geodesic sides
+        # Compute geodesics on unit circle, then scale the result
         all_points = []
         for i in range(3):
-            p1 = self.vertices[i]
-            p2 = self.vertices[(i + 1) % 3]
-            arc_points = geodesic_arc(p1, p2, num_points=30)
-            all_points.extend(arc_points[:-1])  # Avoid duplicating endpoints
+            # Get unit circle points for geodesic calculation
+            p1_unit = np.array([np.cos(angles[i]), np.sin(angles[i]), 0])
+            p2_unit = np.array([np.cos(angles[(i + 1) % 3]), np.sin(angles[(i + 1) % 3]), 0])
+            arc_points = geodesic_arc(p1_unit, p2_unit, num_points=30)
+            # Scale to disk radius
+            scaled_points = [radius * pt for pt in arc_points]
+            all_points.extend(scaled_points[:-1])  # Avoid duplicating endpoints
 
         self.set_points_as_corners(all_points + [all_points[0]])
 
@@ -175,8 +182,7 @@ class IdealTriangleScene(Scene):
 
         # Create an ideal triangle with vertices at 120° apart
         angles = [0, 2*PI/3, 4*PI/3]
-        triangle = IdealTriangle(angles, color=BLUE, stroke_width=3)
-        triangle.scale(2.5)  # Scale to match disk
+        triangle = IdealTriangle(angles, radius=2.5, color=BLUE, stroke_width=3)
 
         # Mark the ideal vertices
         vertices = VGroup(*[
@@ -216,8 +222,7 @@ class MultipleIdealTriangles(Scene):
 
         # Central triangle
         central_angles = [PI/6, PI/6 + 2*PI/3, PI/6 + 4*PI/3]
-        central = IdealTriangle(central_angles, color=BLUE, stroke_width=2)
-        central.scale(2.5)
+        central = IdealTriangle(central_angles, radius=2.5, color=BLUE, stroke_width=2)
         triangles.add(central)
 
         # Adjacent triangles sharing edges
@@ -228,8 +233,7 @@ class MultipleIdealTriangles(Scene):
         ]
 
         for angles, color in adjacent_configs:
-            tri = IdealTriangle(angles, color=color, stroke_width=2)
-            tri.scale(2.5)
+            tri = IdealTriangle(angles, radius=2.5, color=color, stroke_width=2)
             triangles.add(tri)
 
         self.play(Write(title))
@@ -264,8 +268,7 @@ class AnimatedIdealTriangle(Scene):
         def get_triangle():
             a = angles.get_value()
             triangle_angles = [a, a + 2*PI/3, a + 4*PI/3]
-            tri = IdealTriangle(triangle_angles, color=BLUE, stroke_width=3)
-            tri.scale(2.5)
+            tri = IdealTriangle(triangle_angles, radius=2.5, color=BLUE, stroke_width=3)
             return tri
 
         triangle = always_redraw(get_triangle)
@@ -371,9 +374,8 @@ class IdealTriangleConstruction(Scene):
         self.play(Transform(step1, step3))
 
         # Fill the triangle
-        triangle = IdealTriangle(angles, fill_opacity=0.3, fill_color=BLUE,
+        triangle = IdealTriangle(angles, radius=2.5, fill_opacity=0.3, fill_color=BLUE,
                                 stroke_width=0)
-        triangle.scale(2.5)
         self.play(FadeIn(triangle))
 
         self.wait(3)
